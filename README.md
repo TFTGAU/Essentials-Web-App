@@ -1,6 +1,6 @@
 # Essentials for Enterprise IT — Assessment app
 
-A web version of ASD's *Essentials for Enterprise IT – Assessment Workbook*, for teams that find the Excel file heavy or awkward in Google Workspace.
+A web version of ASD's *Essentials for Enterprise IT – Assessment Workbook*, for teams that find the Excel file heavy or awkward in Collabrative enviroment.
 
 - One assessment for one business, shared by everyone on an allowlist.
 - Google sign-in, limited to the emails or Workspace domains you choose.
