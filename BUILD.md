@@ -29,13 +29,13 @@ On Linux, Docker Engine with the Compose plugin is all you need.
 ## Local development
 
 ```bash
-cd server && npm install && DEV_LOGIN=true COOKIE_SECURE=false ADMIN_EMAILS=you@example.com npm run dev
+cd server && npm install && DEV_LOGIN=true ADMIN_EMAILS=you@example.com npm run dev
 cd web && npm install && npm run dev   # http://localhost:5173, proxies /api to :8080
 ```
 
 `DEV_LOGIN=true` adds an email-only sign-in form for testing without Google. The server refuses to start with it when `NODE_ENV=production`, which the Docker image sets.
 
-For Google sign-in during development, add `http://localhost:8080` (and `http://localhost:5173`) to the client's authorised origins and set `COOKIE_SECURE=false`.
+For Google sign-in during development, add `http://localhost:8080` (and `http://localhost:5173`) to the client's authorised origins.
 
 ## Configuration reference
 
@@ -43,7 +43,7 @@ Besides the settings in the README:
 
 | Setting | Default | Purpose |
 | --- | --- | --- |
-| `COOKIE_SECURE` | `true` | Set `false` only for plain `http://localhost` testing |
+| `SESSION_SECRET` | generated | Signs sign-in sessions. If unset, a random one is created on first start and kept in the data volume (`/data/session-secret`). You don't normally need to set it; if you do, it must be at least 32 characters. Changing it signs everyone out. |
 | `SESSION_HOURS` | `12` | How long a sign-in lasts |
 | `AUTH_FAIL_LIMIT` | `20` | Failed sign-ins per IP per 15 minutes |
 | `IP_RATE_LIMIT` | `1200` | API requests per IP per minute |

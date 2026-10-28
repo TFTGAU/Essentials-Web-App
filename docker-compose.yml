@@ -1,10 +1,16 @@
 services:
   app:
-    # Pulls the published image. `docker compose up -d --build` builds from source instead.
     image: ghcr.io/tftgau/essentials-web-app:latest
-    build: .
     restart: unless-stopped
-    env_file: .env
+    # See .env.example for what each setting does.
+    environment:
+      ORG_NAME: ${ORG_NAME}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      ADMIN_EMAILS: ${ADMIN_EMAILS}
+      ALLOWED_EMAILS: ${ALLOWED_EMAILS}
+      ALLOWED_DOMAINS: ${ALLOWED_DOMAINS}
+      SESSION_HOURS: ${SESSION_HOURS}
+      TRUST_PROXY: ${TRUST_PROXY}
     ports:
       - "8080:8080"
     volumes:

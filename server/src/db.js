@@ -2,7 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const dataDir = process.env.DATA_DIR || path.resolve('data-store');
+export const dataDir = process.env.DATA_DIR || path.resolve('data-store');
 fs.mkdirSync(dataDir, { recursive: true });
 
 export const db = new DatabaseSync(path.join(dataDir, 'essentials.db'));

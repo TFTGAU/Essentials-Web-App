@@ -1,6 +1,8 @@
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { OAuth2Client } from 'google-auth-library';
-import { db, now } from './db.js';
+import { db, now, dataDir } from './db.js';
 
 const list = (v) =>
   (v || '')
@@ -14,7 +16,6 @@ export const config = {
   adminEmails: list(process.env.ADMIN_EMAILS),
   allowedDomains: list(process.env.ALLOWED_DOMAINS),
   sessionHours: Number(process.env.SESSION_HOURS || 12),
-  cookieSecure: (process.env.COOKIE_SECURE || 'true') !== 'false',
   devLogin: process.env.DEV_LOGIN === 'true',
 };
 
@@ -23,14 +24,30 @@ if (config.devLogin && process.env.NODE_ENV === 'production') {
   process.exit(1);
 }
 
+// Session secret: SESSION_SECRET if set, otherwise one generated on first start
+// and kept in the data folder so sign-ins survive restarts.
 let secret = process.env.SESSION_SECRET;
-if (!secret || secret.length < 32) {
-  if (process.env.NODE_ENV === 'production') {
-    console.error('SESSION_SECRET must be set to at least 32 characters. Refusing to start.');
+if (secret) {
+  if (secret.length < 32) {
+    console.error('SESSION_SECRET must be at least 32 characters (or leave it unset to have one generated). Refusing to start.');
     process.exit(1);
   }
-  secret = crypto.randomBytes(32).toString('hex');
-  console.warn('SESSION_SECRET not set: using a random one (sessions reset on restart).');
+} else {
+  secret = loadOrCreateSecret();
+}
+
+function loadOrCreateSecret() {
+  const file = path.join(dataDir, 'session-secret');
+  try {
+    const saved = fs.readFileSync(file, 'utf8').trim();
+    if (saved.length >= 32) return saved;
+  } catch {
+    /* not created yet */
+  }
+  const fresh = crypto.randomBytes(32).toString('hex');
+  fs.writeFileSync(file, `${fresh}\n`, { mode: 0o600 });
+  console.log(`Generated a session secret and saved it to ${file}`);
+  return fresh;
 }
 
 /** Seed users from env on every start so env changes take effect. */
@@ -93,9 +110,10 @@ export function setSession(res, email) {
     created.toISOString(),
     expires.toISOString()
   );
+  // Secure when the request came over HTTPS. Behind a proxy that needs TRUST_PROXY.
   res.cookie(COOKIE, token, {
     httpOnly: true,
-    secure: config.cookieSecure,
+    secure: res.req.secure,
     sameSite: 'lax',
     maxAge: config.sessionHours * 3600_000,
     path: '/',
@@ -103,7 +121,7 @@ export function setSession(res, email) {
 }
 
 export function clearSession(res) {
-  res.clearCookie(COOKIE, { path: '/', httpOnly: true, secure: config.cookieSecure, sameSite: 'lax' });
+  res.clearCookie(COOKIE, { path: '/', httpOnly: true, secure: res.req.secure, sameSite: 'lax' });
 }
 
 function readCookie(req) {

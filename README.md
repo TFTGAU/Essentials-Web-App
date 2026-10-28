@@ -14,8 +14,6 @@ Scoring matches the workbook. The one exception is E8 controls: the workbook's f
 
 ## Quick start
 
-You need a Linux server (or Mac) with Docker and the Compose plugin.
-
 ### 1. Create a Google OAuth client ID
 
 1. Open [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials).
@@ -41,8 +39,7 @@ Edit `.env`:
 | `ADMIN_EMAILS` | Admins. They can also add users in the app. |
 | `ALLOWED_EMAILS` | Other people allowed to sign in |
 | `ALLOWED_DOMAINS` | Optional: allow a whole Google Workspace domain |
-| `SESSION_SECRET` | Generate with `openssl rand -hex 32` |
-| `TRUST_PROXY` | Set to `1` if the app is behind a reverse proxy |
+| `TRUST_PROXY` | Set to `1` if the app is behind an HTTPS reverse proxy |
 
 ### 3. Start
 

@@ -38,14 +38,13 @@ function record(technique, check, pass, detail = '') {
   results.push({ technique, check, pass, detail });
 }
 
-async function startServer(port, env, { expectExit = false } = {}) {
-  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ee-sec-'));
+async function startServer(port, env, { expectExit = false, dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ee-sec-')) } = {}) {
   const child = spawn(process.execPath, ['--disable-warning=ExperimentalWarning', SERVER], {
     cwd: ROOT,
     env: { PATH: process.env.PATH, PORT: String(port), DATA_DIR: dataDir, ...env },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
-  const srv = { port, child, log: '', exited: null, base: `http://127.0.0.1:${port}` };
+  const srv = { port, child, dataDir, log: '', exited: null, base: `http://127.0.0.1:${port}` };
   child.stdout.on('data', (d) => (srv.log += d));
   child.stderr.on('data', (d) => (srv.log += d));
   child.on('exit', (code) => (srv.exited = code ?? 1));
@@ -99,8 +98,8 @@ function rawGet(srv, rawPath) {
   });
 }
 
-async function login(srv, email) {
-  const r = await req(srv, 'POST', '/api/auth/dev', { body: { email } });
+async function login(srv, email, headers = {}) {
+  const r = await req(srv, 'POST', '/api/auth/dev', { body: { email }, headers });
   const set = r.headers.get('set-cookie') || '';
   const m = set.match(/ee_session=[^;]+/);
   return { status: r.status, cookie: m ? m[0] : null, setCookie: set };
@@ -147,8 +146,18 @@ async function main() {
     const prodDevLogin = await startServer(18432, { NODE_ENV: 'production', DEV_LOGIN: 'true', SESSION_SECRET: SECRET }, { expectExit: true });
     record(T, 'Server refuses to start with DEV_LOGIN in production', prodDevLogin.exited !== null && prodDevLogin.exited !== 0, prodDevLogin.log.trim().split('\n').pop());
 
-    const prodNoSecret = await startServer(18433, { NODE_ENV: 'production' }, { expectExit: true });
-    record(T, 'Server refuses to start without SESSION_SECRET in production', prodNoSecret.exited !== null && prodNoSecret.exited !== 0, prodNoSecret.log.trim().split('\n').pop());
+    // No SESSION_SECRET: one is generated on first start, saved owner-only, and reused after a restart
+    const gen = await startServer(18433, { NODE_ENV: 'production' });
+    const secretFile = path.join(gen.dataDir, 'session-secret');
+    const first = fs.existsSync(secretFile) ? fs.readFileSync(secretFile, 'utf8').trim() : '';
+    const mode = first ? (fs.statSync(secretFile).mode & 0o777).toString(8) : 'none';
+    record(T, 'Without SESSION_SECRET, a strong secret is generated on first start', gen.exited === null && /^[0-9a-f]{64}$/.test(first), `${first.length} hex chars`);
+    record(T, 'Generated secret file is readable by its owner only', mode === '600', `mode ${mode}`);
+    gen.child.kill();
+    await sleep(300);
+    const again = await startServer(18433, { NODE_ENV: 'production' }, { dataDir: gen.dataDir });
+    const second = fs.existsSync(secretFile) ? fs.readFileSync(secretFile, 'utf8').trim() : '';
+    record(T, 'Generated secret is reused after a restart (sign-ins survive)', again.exited === null && !!first && first === second);
 
     const prodWeak = await startServer(18434, { NODE_ENV: 'production', SESSION_SECRET: 'short' }, { expectExit: true });
     record(T, 'Server refuses a weak SESSION_SECRET in production', prodWeak.exited !== null && prodWeak.exited !== 0, prodWeak.log.trim().split('\n').pop());
@@ -183,10 +192,17 @@ async function main() {
     const T = 'T1539 Steal Web Session Cookie';
     const sc = admin.setCookie;
     record(T, 'Session cookie is HttpOnly (not readable by scripts)', /HttpOnly/i.test(sc), sc.replace(/ee_session=[^;]+/, 'ee_session=…'));
-    record(T, 'Session cookie is Secure by default (HTTPS only)', /;\s*Secure/i.test(sc));
     record(T, 'Session cookie is SameSite', /SameSite=(Lax|Strict)/i.test(sc));
-    const r = await req(dev, 'GET', '/api/health');
-    record(T, 'HSTS header forces HTTPS when cookies are Secure', !!r.headers.get('strict-transport-security'), r.headers.get('strict-transport-security') || 'missing');
+    // Over HTTPS through a trusted proxy (the default trusts localhost), cookies are HTTPS-only and HSTS is sent
+    const HTTPS = { 'X-Forwarded-Proto': 'https' };
+    const viaHttps = await login(dev, ADMIN, HTTPS);
+    record(T, 'Session cookie is Secure (HTTPS only) when served over HTTPS', /;\s*Secure/i.test(viaHttps.setCookie));
+    const r = await req(dev, 'GET', '/api/health', { headers: HTTPS });
+    record(T, 'HSTS header forces HTTPS when served over HTTPS', !!r.headers.get('strict-transport-security'), r.headers.get('strict-transport-security') || 'missing');
+    // A proxy header from an address that isn't trusted is ignored
+    const untrusted = await startServer(18440, { ...devEnv, TRUST_PROXY: '10.9.9.9' });
+    const spoof = await login(untrusted, ADMIN, HTTPS);
+    record(T, 'HTTPS claim from an untrusted proxy is ignored', !!spoof.cookie && !/;\s*Secure/i.test(spoof.setCookie));
     const value = admin.cookie.split('=')[1];
     record(T, 'Session token has at least 128 bits of entropy', Buffer.from(value.split('.').pop(), 'base64url').length >= 16 || value.length >= 32, `${value.length} chars`);
   }

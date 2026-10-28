@@ -178,7 +178,7 @@ app.use((req, res, next) => {
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
   });
   // Tell browsers to only ever use HTTPS for this site (ignored over plain http)
-  if (config.cookieSecure) res.set('Strict-Transport-Security', 'max-age=15552000');
+  if (req.secure) res.set('Strict-Transport-Security', 'max-age=15552000');
   next();
 });
 app.use('/api', ipLimiter);
