@@ -40,6 +40,7 @@ Edit `.env`:
 | `ALLOWED_EMAILS` | Other people allowed to sign in |
 | `ALLOWED_DOMAINS` | Optional: allow a whole Google Workspace domain |
 | `TRUST_PROXY` | Set to `1` if the app is behind an HTTPS reverse proxy |
+| `PORT` | Port the app is served on (default `8080`) |
 
 ### 3. Start
 
@@ -47,7 +48,7 @@ Edit `.env`:
 docker compose pull && docker compose up -d
 ```
 
-The app listens on port 8080. To use a different port, change the first number in `docker-compose.yml`, for example `"9000:8080"`. Put it behind an HTTPS reverse proxy such as Caddy, nginx or Cloudflare Tunnel. Google sign-in needs HTTPS, except on `localhost`.
+The app is served on port 8080, or whatever `PORT` is set to. Put it behind an HTTPS reverse proxy such as Caddy, nginx or Cloudflare Tunnel. Google sign-in needs HTTPS, except on `localhost`.
 
 To update, run the same command again. To stay on a specific version, change `latest` in `docker-compose.yml` to a version number, for example `:1.0.0`.
 

@@ -11,8 +11,9 @@ services:
       ALLOWED_DOMAINS: ${ALLOWED_DOMAINS}
       SESSION_HOURS: ${SESSION_HOURS}
       TRUST_PROXY: ${TRUST_PROXY}
+      PORT: ${PORT}
     ports:
-      - "8080:8080"
+      - "${PORT:-8080}:${PORT:-8080}"
     volumes:
       - essentials-data:/data
 
