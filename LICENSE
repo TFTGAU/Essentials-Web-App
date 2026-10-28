@@ -19,3 +19,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+This licence covers the application code only. The framework content in
+server/data/framework.json is taken from the Australian Signals Directorate's
+"Essentials for Enterprise IT – Assessment Workbook" and remains subject to
+ASD's own licence terms. See the README for attribution.
