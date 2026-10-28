@@ -93,7 +93,7 @@ The [Docker image workflow](.github/workflows/docker.yml) builds for Intel/AMD a
 git tag v1.0.0 && git push origin v1.0.0
 ```
 
-Images go to `ghcr.io/tftgau/essentials`. To also publish to Docker Hub, create a Docker Hub access token, then in the repo's **Settings → Secrets and variables → Actions** add a variable `DOCKERHUB_USERNAME` and a secret `DOCKERHUB_TOKEN`.
+Images go to `ghcr.io/tftgau/essentials-web-app`. To also publish to Docker Hub, create a Docker Hub access token, then in the repo's **Settings → Secrets and variables → Actions** add a variable `DOCKERHUB_USERNAME` and a secret `DOCKERHUB_TOKEN`.
 
 ## Layout
 

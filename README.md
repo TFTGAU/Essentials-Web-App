@@ -28,8 +28,8 @@ You need a Linux server (or Mac) with Docker and the Compose plugin.
 
 ```bash
 mkdir essentials && cd essentials
-curl -fsSLO https://raw.githubusercontent.com/TFTGAU/essentials/main/docker-compose.yml
-curl -fsSL -o .env https://raw.githubusercontent.com/TFTGAU/essentials/main/.env.example
+curl -fsSLO https://raw.githubusercontent.com/TFTGAU/Essentials-Web-App/main/docker-compose.yml
+curl -fsSL -o .env https://raw.githubusercontent.com/TFTGAU/Essentials-Web-App/main/.env.example
 ```
 
 Edit `.env`:

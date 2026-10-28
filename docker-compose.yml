@@ -1,7 +1,7 @@
 services:
   app:
     # Pulls the published image. `docker compose up -d --build` builds from source instead.
-    image: ghcr.io/tftgau/essentials:latest
+    image: ghcr.io/tftgau/essentials-web-app:latest
     build: .
     restart: unless-stopped
     env_file: .env
