@@ -67,7 +67,7 @@ You can also download a JSON backup from **Settings & export**, and admins can r
 ## More
 
 - [BUILD.md](BUILD.md): building from source, local development, updating the framework content, releasing.
-- [SECURITY.md](SECURITY.md): security testing against MITRE ATT&CK techniques, and results.
+- [SECURITY.md](SECURITY.md): reporting security issues, security testing and deployment advice.
 
 ## Licence and attribution
 
