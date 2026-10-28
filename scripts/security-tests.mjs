@@ -401,6 +401,12 @@ async function main() {
     const long = await req(dev, 'PUT', '/api/assessment/responses', { cookie: user.cookie, body: { kind: 'action', domain: 'Boundary services', itemId: 'IT.PRO-01.1', data: { evidence: 'x'.repeat(20001) } } });
     record(T, 'Over-long text fields are refused', long.status === 400, `status ${long.status}`);
 
+    // A crafted email that makes a naive pattern backtrack must be rejected quickly
+    const started = Date.now();
+    const crafted = await req(dev, 'POST', '/api/users', { cookie: admin.cookie, body: { email: `a@${'!.'.repeat(500000)} ` } });
+    const ms = Date.now() - started;
+    record(T, 'Crafted email input cannot stall the server', crafted.status === 400 && ms < 1000, `status ${crafted.status} in ${ms} ms`);
+
     const t0 = Date.now();
     const burst = await Promise.all(Array.from({ length: 300 }, () => req(dev, 'GET', '/api/assessment', { cookie: admin.cookie }).catch(() => ({ status: 0 }))));
     const answered = burst.filter((r) => r.status > 0).length;
@@ -501,7 +507,7 @@ function report() {
         current = r.technique;
         md.push('', `## ${current}`, '', '| Result | Check | Detail |', '| --- | --- | --- |');
       }
-      md.push(`| ${r.pass === true ? 'Pass' : r.pass === false ? '**Fail**' : 'Skipped'} | ${r.check} | ${String(r.detail).replace(/\|/g, '\\|')} |`);
+      md.push(`| ${r.pass === true ? 'Pass' : r.pass === false ? '**Fail**' : 'Skipped'} | ${r.check} | ${String(r.detail).replace(/[\\|]/g, '\\$&')} |`);
     }
     fs.writeFileSync(reportPath, md.join('\n') + '\n');
   }

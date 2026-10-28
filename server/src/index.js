@@ -181,7 +181,7 @@ app.use((req, res, next) => {
   if (req.secure) res.set('Strict-Transport-Security', 'max-age=15552000');
   next();
 });
-app.use('/api', ipLimiter);
+app.use(ipLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use('/api', csrfGuard);
 
@@ -340,7 +340,7 @@ api.get('/users', requireAdmin, (req, res) => {
 
 api.post('/users', requireAdmin, (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase();
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return res.status(400).json({ error: 'Enter a valid email address' });
+  if (email.length > 254 || !/^[^@\s]+@[^@\s.]+(?:\.[^@\s.]+)+$/.test(email)) return res.status(400).json({ error: 'Enter a valid email address' });
   const isAdmin = req.body?.isAdmin ? 1 : 0;
   const existing = db.prepare(`SELECT * FROM users WHERE email = ?`).get(email);
   if (existing?.source === 'env') return res.status(400).json({ error: 'This user is managed by environment variables' });

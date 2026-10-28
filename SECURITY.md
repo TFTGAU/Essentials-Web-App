@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-Please report security issues privately using GitHub's **Report a vulnerability** button on the repository's **Security** tab, rather than opening a public issue. Include enough detail to reproduce the problem.
+Please report security issues privately using GitHub's [Report a vulnerability](https://github.com/TFTGAU/Essentials-Web-App/security/advisories/new), rather than opening a public issue. Include enough detail to reproduce the problem.
 
 ## Security testing
 
